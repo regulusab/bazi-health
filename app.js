@@ -14,7 +14,7 @@ setP(H.SAMPLE.pillars);
 $('calc').onclick=function(){var d=$('bd').value,t=$('bt').value||'12:00';if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$('cnote').textContent='請輸入日期';return;}
  var a=d.split('-'),b=t.split(':');var f=H.fromSolar(+a[0],+a[1],+a[2],+b[0],+b[1],parseFloat($('tz').value)||8,$('lz').checked);setP(f.pillars);BIRTH={y:+a[0],m:+a[1],d:+a[2],h:+b[0],mi:+b[1],tz:parseFloat($('tz').value)||8};
  $('cnote').textContent='排得：'+f.pillars.join(' ')+(f.note?'（'+f.note+'）':'')+'。節氣以太陽黃經近似計算，未作真太陽時校正；出生在節氣交界前後請自行核對。';};
-var last=null,SG={horiz:false,mode:'season',year:new Date().getFullYear(),dy:'auto',lnV:(function(){try{var v=localStorage.getItem('healthLnV');if(v)return v==='1';}catch(e){}return (window.innerWidth||600)<600;})(),method:(function(){try{return localStorage.getItem('healthMethod')==='m2'?'m2':'m1';}catch(e){return 'm1';}})()},BIRTH=null;
+var last=null,SG={horiz:false,mode:'season',year:new Date().getFullYear(),dy:'auto',lnK:(function(){try{return localStorage.getItem('healthLnK')||null;}catch(e){return null;}})(),lnV:(function(){try{var v=localStorage.getItem('healthLnV');if(v)return v==='1';}catch(e){}return (window.innerWidth||600)<600;})(),method:(function(){try{return localStorage.getItem('healthMethod')==='m2'?'m2':'m1';}catch(e){return 'm1';}})()},BIRTH=null;
 var WC={木:'#2e7d32',火:'#c62828',土:'#a0782a',金:'#707070',水:'#1f5fa8'};
 var BADGE={旺:['最旺（旺）','background:#a52a1e;color:#fff'],相:['次旺（相）','background:#f8d7d3;color:#a52a1e'],休:['衰（休）','border:1px solid #aaa;color:#666'],囚:['次衰（囚）','background:#dbe6f3;color:#1f3a52'],死:['最衰（死）','background:#1f3a52;color:#fff']};
 function cz(t){var o='';for(var i=0;i<t.length;i++)o+='<span style="color:'+WC[H.wxOf(t.charAt(i))]+'">'+t.charAt(i)+'</span>';return o;}
@@ -57,11 +57,23 @@ function geHtml(R){var p=R.pillars,S=H.shigan(p,D),G=H.gejue(p,D),o=[];
 function mzHtml(R){var M=H.mingzi(R.pillars,D),o=['<h2>八字明字對照表　<span class="note">附圖規則／12欄明字計數</span></h2><table><tr><th>干／支·臟腑</th><th>圖表五行</th><th>明字數</th></tr>'];
  M.forEach(function(m){o.push('<tr><td>'+m.g+'／'+m.z+'·'+m.organ+'</td><td style="color:'+WC[m.wx]+'">'+m.wx+'</td><td'+(m.n?'':' class="u"')+'>'+m.n+' 字</td></tr>');});
  o.push('</table><p class="note">'+esc(D.mingziNote)+'</p><p class="src" data-t="'+D.shotSrc+'">'+D.shotSrc+'</p>');return o.join('');}
+function wuLn(p,S,ln,dy){var N=H.shigan(p,D).cnt,Y=H.gzCount(ln,D),U=H.gzCount(dy,D),o=[],sea=S.siji&&SG.mode==='tu'?S.tu:S.season,G=H.GAN;
+ function mk(n,ch){var s='';for(var i=0;i<n;i++)s+=ch;return s;}
+ var hdr=['十干','五行','臟腑','本命','大運','流年','合計','衰旺'+(S.siji?'<br><small>'+(SG.mode==='tu'?'以土為旺':'以季節為旺')+'</small>':'')];
+ var cells=G.map(function(g){var t=N[g]+Y[g]+U[g],w=H.wxOf(g);return['<td class="big2">'+cz(g)+'</td>','<td style="color:'+WC[w]+'">'+w+'</td>','<td>'+D.shiganOrgan[g]+'</td>','<td>'+mk(N[g],'○')+'</td>','<td>'+mk(U[g],'△')+'</td>','<td>'+mk(Y[g],'☆')+'</td>','<td'+(t?'':' style="background:#fbe3e6"')+'>'+t+'</td>','<td>'+badge(sea[w])+'</td>'];});
+ if(SG.lnV){o.push('<table class="ln lnv"><tr>'+hdr.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>');
+  cells.forEach(function(r,k){o.push('<tr>'+r.map(function(c,j){if(j===1){if(k%2)return '';return c.replace('<td','<td rowspan="2"');}return c;}).join('')+'</tr>');});o.push('</table>');}
+ else{o.push('<div class="scr"><table class="ln">');hdr.forEach(function(h,j){o.push('<tr><th>'+h+'</th>'+cells.map(function(r,k){if(j===1){if(k%2)return '';return r[1].replace('<td','<td colspan="2"');}return r[j];}).join('')+'</tr>');});o.push('</table></div>');}
+ o.push('<p class="note">○本命（四柱天干＋地支藏干）、△大運'+(dy||'（不計）')+'、☆流年'+ln+'，各以天干＋地支藏干計。衰旺依月令旺相休囚死。吳俊民《命理新論》只用天干與地支藏干加總；將大運、流年以同法加入為本站設定（書影未見此作法）。</p><p class="src" data-t="'+D.bookSrc+'">'+D.bookSrc+'</p>');
+ o.push('<div class="row noexp"><button class="sec" id="lnH">切換為'+(SG.lnV?'橫式':'直式')+'表格</button></div>');return o.join('');}
 function lnHtml(R,S){var p=R.pillars,DY=H.dayun(p,R.gender,BIRTH),y=SG.year,ln=H.yearGZ(y),dy=null,o=[];
  if(DY.startAge!=null){var age=y-DY.birthYear,k=Math.floor((age-DY.startAge)/10);if(age>=DY.startAge&&k<8)dy=DY.list[k];}
  if(SG.dy!=null&&SG.dy!=='auto')dy=SG.dy===''?null:SG.dy;
  o.push('<h2>流年／大運臟腑表</h2><div class="row noexp">流年 <input type="number" id="lnY" value="'+y+'" style="width:90px"> 大運 <select id="dyS"><option value="auto">'+(DY.startAge!=null?'依生辰自動':'（未輸入生辰）')+'</option><option value="">不計</option>'+DY.list.map(function(g,i){return '<option'+(SG.dy===g?' selected':'')+' value="'+g+'">'+g+(DY.startAge!=null?'（'+(Math.round((DY.startAge+i*10)*10)/10)+'歲起）':'')+'</option>';}).join('')+'</select></div>');
  o.push('<p>流年 '+y+' '+ln+'；大運 '+(dy||'—')+'（'+(DY.fwd?'順':'逆')+'行'+(DY.startAge!=null?'，約 '+(Math.round(DY.startAge*10)/10)+' 歲起運':'')+'）</p>');
+ var K=SG.lnK||(SG.method==='m2'?'wu':'ge');
+ o.push('<div class="row noexp"><button id="lnK1" class="'+(K==='ge'?'':'sec')+'">歌訣式（天干＋地支）</button><button id="lnK2" class="'+(K==='wu'?'':'sec')+'">吳俊民式（天干＋藏干）</button></div><p>本表採用：'+(K==='wu'?'吳俊民式（天干＋藏干）':'歌訣式（天干＋地支）')+'</p>');
+ if(K==='wu'){o.push(wuLn(p,S,ln,dy));return o.join('');}
  var chars=[];p.forEach(function(x){chars.push(x.charAt(0),x.charAt(1));});var yun=[ln.charAt(0),ln.charAt(1)];if(dy)yun.push(dy.charAt(0),dy.charAt(1));
  var M=D.mingzi.slice(0,10).concat([D.mingzi[10],D.mingzi[11]]),hdr=['地支','天干','色','五行','臟腑','經脈','本命','運歲','衰旺'],rows=hdr.map(function(h){return['<th>'+h+'</th>'];});
  M.forEach(function(m){var g=m[0].replace('寄',''),z=m[1],real=m[0].indexOf('寄')<0,st='',sy='',i;
@@ -79,7 +91,7 @@ function lnHtml(R,S){var p=R.pillars,DY=H.dayun(p,R.gender,BIRTH),y=SG.year,ln=H
  o.push('<p class="note">'+esc(D.lnNote)+' 原圖另有「力量」列（最強／中平／稍弱／甚弱），截圖未示其判定規則，本站不計算。截圖僅見子丑未午辰巳六欄，其後各欄之色未見；其後各欄經脈之臟腑依《醫宗金鑑》地支十二經流注歌（使用者提供）；＊全經名參維基百科「子午流注」。大運起運依「陽男陰女順、陰男陽女逆，出生至節氣日數÷3＝歲」常法計算（本站設定），節氣為近似計算。</p><p class="src" data-t="'+D.shotSrc+'">'+D.shotSrc+'</p>');
  return o.join('');}
 function setM(m){SG.method=m;try{localStorage.setItem('healthMethod',m);}catch(e){}render(last);}
-function bindSG(){var b1=$('mB1'),b2=$('mB2');if(b1)b1.onclick=function(){setM('m1');};if(b2)b2.onclick=function(){setM('m2');};var ly=$('lnY'),ds=$('dyS');if(ly)ly.onchange=function(){SG.year=parseInt(ly.value,10)||SG.year;render(last);};if(ds)ds.onchange=function(){SG.dy=ds.value;render(last);};var lh=$('lnH');if(lh)lh.onclick=function(){SG.lnV=!SG.lnV;try{localStorage.setItem('healthLnV',SG.lnV?'1':'0');}catch(e){}render(last);};var a=$('sgH'),b=$('sgM');if(a)a.onclick=function(){SG.horiz=!SG.horiz;render(last);};if(b)b.onchange=function(){SG.mode=b.value;render(last);};}
+function bindSG(){var b1=$('mB1'),b2=$('mB2');if(b1)b1.onclick=function(){setM('m1');};if(b2)b2.onclick=function(){setM('m2');};var ly=$('lnY'),ds=$('dyS');if(ly)ly.onchange=function(){SG.year=parseInt(ly.value,10)||SG.year;render(last);};if(ds)ds.onchange=function(){SG.dy=ds.value;render(last);};var k1=$('lnK1'),k2=$('lnK2');function sk(v){SG.lnK=v;try{localStorage.setItem('healthLnK',v);}catch(e){}render(last);}if(k1)k1.onclick=function(){sk('ge');};if(k2)k2.onclick=function(){sk('wu');};var lh=$('lnH');if(lh)lh.onclick=function(){SG.lnV=!SG.lnV;try{localStorage.setItem('healthLnV',SG.lnV?'1':'0');}catch(e){}render(last);};var a=$('sgH'),b=$('sgM');if(a)a.onclick=function(){SG.horiz=!SG.horiz;render(last);};if(b)b.onchange=function(){SG.mode=b.value;render(last);};}
 function render(R){var s=[];
  s.push('<h2>命盤</h2><div class="big">'+R.pillars.join('　')+'</div><div>'+R.gender+'造　日主 '+R.dm.c+'（'+R.dm.wx+'）</div>');
  var M2=SG.method==='m2',MN=M2?'方法二「吳俊民法（天干＋藏干）」':'方法一「歌訣法（天干＋地支）」';

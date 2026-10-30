@@ -61,6 +61,8 @@ function shigan(p,D){var cnt={},cang=[],i;GAN.forEach(function(g){cnt[g]=0;});
  var mz=p[1].charAt(1),siji='辰戌丑未'.indexOf(mz)>=0,sea=SEASON[mz];
  var tot=0;for(var k in cnt)tot+=cnt[k];
  return {cnt:cnt,cang:cang,total:tot,siji:siji,seasonWx:sea,tu:siji?wsx('土'):null,season:wsx(sea)};}
+/* 單柱天干＋地支藏干計數（吳俊民式流年／大運表，本站設定） */
+function gzCount(gz,D){var r={};GAN.forEach(function(g){r[g]=0;});if(!gz)return r;r[gz.charAt(0)]++;var cg=D.cang[gz.charAt(1)];for(var j=0;j<cg.length;j++)r[cg.charAt(j)]++;return r;}
 /* 書中生剋洩配對（由書影例句歸納：同陰陽相配，如甲得壬生、遭庚剋、洩於丙）——推論 */
 function bookForce(cnt){var r={};GAN.forEach(function(g,i){r[g]={n:cnt[g],sheng:GAN[(i+8)%10],shengN:cnt[GAN[(i+8)%10]],ke:GAN[(i+6)%10],keN:cnt[GAN[(i+6)%10]],xie:GAN[(i+2)%10],xieN:cnt[GAN[(i+2)%10]]};});return r;}
 function mingzi(p,D){var chars=[],i;for(i=0;i<4;i++)chars.push(p[i].charAt(0),p[i].charAt(1));
@@ -106,7 +108,10 @@ function selftest(D){var out=[],ok=true;function chk(n,a,e){var p=a===e;ok=ok&&p
  chk('表裡歌 丁/癸 與書對應',D.bookOrgan['丁']+'/'+D.bookOrgan['癸'],'心臟/腎');
  var G=gejue(SAMPLE.pillars,D);chk('方法一 歌訣法計數',G.map(function(r){return r.organ+r.n;}).join(' '),'膽1 肝0 肺2 大腸0 胃1 脾0 心1 小腸1 膀胱2 腎0 心包0 三焦0');
  chk('方法一 膀胱來源',G[8].gan.join(','),'年壬,時壬');chk('方法一 肺來源',G[2].zhi.join(','),'年寅,日寅');
+ var LN=gzCount(yearGZ(2026),D),DC=gzCount('戊申',D);
+ chk('吳俊民式 流年2026 丙午',GAN.filter(function(g){return LN[g];}).map(function(g){return g+LN[g];}).join(' '),'丙1 丁1 己1');
+ chk('吳俊民式 大運戊申',GAN.filter(function(g){return DC[g];}).map(function(g){return g+DC[g];}).join(' '),'戊2 庚1 壬1');
  return {ok:ok,lines:out,R:R,DY:DY};}
-var API={GAN:GAN,ZHI:ZHI,WX:WX,POS:POS,wxOf:wxOf,fromSolar:fromSolar,analyze:analyze,selftest:selftest,shigan:shigan,gejue:gejue,bookForce:bookForce,mingzi:mingzi,yearGZ:yearGZ,dayun:dayun,SAMPLE:SAMPLE,gen:gen,ke:ke,keBy:keBy,genBy:genBy};
+var API={GAN:GAN,ZHI:ZHI,WX:WX,POS:POS,wxOf:wxOf,fromSolar:fromSolar,analyze:analyze,selftest:selftest,shigan:shigan,gejue:gejue,gzCount:gzCount,bookForce:bookForce,mingzi:mingzi,yearGZ:yearGZ,dayun:dayun,SAMPLE:SAMPLE,gen:gen,ke:ke,keBy:keBy,genBy:genBy};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;else root.HC=API;
 })(this);
