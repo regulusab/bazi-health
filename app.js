@@ -14,7 +14,7 @@ setP(H.SAMPLE.pillars);
 $('calc').onclick=function(){var d=$('bd').value,t=$('bt').value||'12:00';if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){$('cnote').textContent='請輸入日期';return;}
  var a=d.split('-'),b=t.split(':');var f=H.fromSolar(+a[0],+a[1],+a[2],+b[0],+b[1],parseFloat($('tz').value)||8,$('lz').checked);setP(f.pillars);BIRTH={y:+a[0],m:+a[1],d:+a[2],h:+b[0],mi:+b[1],tz:parseFloat($('tz').value)||8};
  $('cnote').textContent='排得：'+f.pillars.join(' ')+(f.note?'（'+f.note+'）':'')+'。節氣以太陽黃經近似計算，未作真太陽時校正；出生在節氣交界前後請自行核對。';};
-var last=null,SG={horiz:false,mode:'season',year:new Date().getFullYear(),dy:'auto',method:(function(){try{return localStorage.getItem('healthMethod')==='m2'?'m2':'m1';}catch(e){return 'm1';}})()},BIRTH=null;
+var last=null,SG={horiz:false,mode:'season',year:new Date().getFullYear(),dy:'auto',lnV:(function(){try{var v=localStorage.getItem('healthLnV');if(v)return v==='1';}catch(e){}return (window.innerWidth||600)<600;})(),method:(function(){try{return localStorage.getItem('healthMethod')==='m2'?'m2':'m1';}catch(e){return 'm1';}})()},BIRTH=null;
 var WC={木:'#2e7d32',火:'#c62828',土:'#a0782a',金:'#707070',水:'#1f5fa8'};
 var BADGE={旺:['最旺（旺）','background:#a52a1e;color:#fff'],相:['次旺（相）','background:#f8d7d3;color:#a52a1e'],休:['衰（休）','border:1px solid #aaa;color:#666'],囚:['次衰（囚）','background:#dbe6f3;color:#1f3a52'],死:['最衰（死）','background:#1f3a52;color:#fff']};
 function cz(t){var o='';for(var i=0;i<t.length;i++)o+='<span style="color:'+WC[H.wxOf(t.charAt(i))]+'">'+t.charAt(i)+'</span>';return o;}
@@ -69,11 +69,17 @@ function lnHtml(R,S){var p=R.pillars,DY=H.dayun(p,R.gender,BIRTH),y=SG.year,ln=H
   rows[0].push('<td class="big2">'+cz(z)+'</td>');rows[1].push('<td class="big2">'+(real?cz(g):'<small>'+m[0]+'</small>')+'</td>');
   rows[2].push('<td>'+(D.lnColor[z]||'<span class="u">截圖未見</span>')+'</td>');rows[3].push('<td style="color:'+WC[m[3]]+'">'+m[3]+'</td>');rows[4].push('<td>'+m[2]+'</td>');
   rows[5].push('<td>'+(D.lnMeridian[z]||D.zhiJing[z]+'<br><small class="u">'+D.lnMeridianWiki[z]+'＊</small>')+'</td>');rows[6].push('<td'+(st?'':' style="background:#fbe3e6"')+'>'+(st||'')+'</td>');rows[7].push('<td>'+sy+'</td>');rows[8].push('<td>'+badge(S.season[m[3]])+'</td>');});
- o.push('<div class="scr"><table class="ln">'+rows.map(function(r){return '<tr>'+r.join('')+'</tr>';}).join('')+'</table></div>');
+ o.push('<div class="row noexp"><button class="sec" id="lnH">切換為'+(SG.lnV?'橫式':'直式')+'表格</button></div>');
+ if(!SG.lnV)o.push('<div class="scr"><table class="ln">'+rows.map(function(r){return '<tr>'+r.join('')+'</tr>';}).join('')+'</table></div>');
+ else{var t=['<table class="ln lnv"><tr>'+hdr.map(function(h){return '<th>'+h+'</th>';}).join('')+'</tr>'];
+  for(var k=0;k<M.length;k++){var tr='<tr>';for(var c=0;c<hdr.length;c++){var cell=rows[c][k+1];
+    if(c===3){if(k>0&&M[k-1][3]===M[k][3])continue;var sp=1;while(k+sp<M.length&&M[k+sp][3]===M[k][3])sp++;if(sp>1)cell=cell.replace('<td','<td rowspan="'+sp+'"');}
+    tr+=cell;}t.push(tr+'</tr>');}
+  o.push(t.join('')+'</table>');}
  o.push('<p class="note">'+esc(D.lnNote)+' 原圖另有「力量」列（最強／中平／稍弱／甚弱），截圖未示其判定規則，本站不計算。截圖僅見子丑未午辰巳六欄，其後各欄之色未見；其後各欄經脈之臟腑依《醫宗金鑑》地支十二經流注歌（使用者提供）；＊全經名參維基百科「子午流注」。大運起運依「陽男陰女順、陰男陽女逆，出生至節氣日數÷3＝歲」常法計算（本站設定），節氣為近似計算。</p><p class="src" data-t="'+D.shotSrc+'">'+D.shotSrc+'</p>');
  return o.join('');}
 function setM(m){SG.method=m;try{localStorage.setItem('healthMethod',m);}catch(e){}render(last);}
-function bindSG(){var b1=$('mB1'),b2=$('mB2');if(b1)b1.onclick=function(){setM('m1');};if(b2)b2.onclick=function(){setM('m2');};var ly=$('lnY'),ds=$('dyS');if(ly)ly.onchange=function(){SG.year=parseInt(ly.value,10)||SG.year;render(last);};if(ds)ds.onchange=function(){SG.dy=ds.value;render(last);};var a=$('sgH'),b=$('sgM');if(a)a.onclick=function(){SG.horiz=!SG.horiz;render(last);};if(b)b.onchange=function(){SG.mode=b.value;render(last);};}
+function bindSG(){var b1=$('mB1'),b2=$('mB2');if(b1)b1.onclick=function(){setM('m1');};if(b2)b2.onclick=function(){setM('m2');};var ly=$('lnY'),ds=$('dyS');if(ly)ly.onchange=function(){SG.year=parseInt(ly.value,10)||SG.year;render(last);};if(ds)ds.onchange=function(){SG.dy=ds.value;render(last);};var lh=$('lnH');if(lh)lh.onclick=function(){SG.lnV=!SG.lnV;try{localStorage.setItem('healthLnV',SG.lnV?'1':'0');}catch(e){}render(last);};var a=$('sgH'),b=$('sgM');if(a)a.onclick=function(){SG.horiz=!SG.horiz;render(last);};if(b)b.onchange=function(){SG.mode=b.value;render(last);};}
 function render(R){var s=[];
  s.push('<h2>命盤</h2><div class="big">'+R.pillars.join('　')+'</div><div>'+R.gender+'造　日主 '+R.dm.c+'（'+R.dm.wx+'）</div>');
  var M2=SG.method==='m2',MN=M2?'方法二「吳俊民法（天干＋藏干）」':'方法一「歌訣法（天干＋地支）」';
