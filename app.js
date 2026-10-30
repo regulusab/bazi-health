@@ -160,6 +160,22 @@ function title(){return '八字健康疾病參考　'+last.gender+'造 '+last.pi
 $('pdf').onclick=function(){$('emsg').textContent='產生 PDF 中…';font().then(function(F){return buildPdf(F,blocks(),title());}).then(function(bytes){save(new Blob([bytes],{type:'application/pdf'}),fname('pdf'));$('emsg').textContent='PDF 已產生';},function(e){$('emsg').textContent='PDF 失敗：'+(e&&e.message||e)+'（需經 http(s) 開啟以載入字型）';});};
 $('doc').onclick=function(){save(buildDocx(blocks(),title()),fname('docx'));$('emsg').textContent='Word 已產生';};
 window.__HX={blocks:blocks,buildPdf:buildPdf,buildDocx:buildDocx,font:font};
+/* 儲存八字 */
+var LS=null;try{LS=window.localStorage;LS.getItem('x');}catch(e){LS=null;}
+function svMsg(t){$('svM').textContent=t;}
+function svRender(){var L=$('svL');if(!LS){L.innerHTML='<p class="note">此瀏覽器無法使用本機儲存。</p>';return;}var a=H.svList(LS);
+ L.innerHTML=a.length?a.map(function(r,i){return '<div class="svi"><span><b>'+esc(r.name)+'</b>　'+esc(r.gender||'')+'　'+esc(r.pillars.join(' '))+(r.birth?'<br><small class="note">'+esc(r.birth.date+' '+(r.birth.time||''))+' UTC+'+r.birth.tz+'</small>':'')+'</span><button data-l="'+i+'">載入</button><button class="sec" data-d="'+i+'">刪除</button></div>';}).join(''):'<p class="note">尚無儲存資料。</p>';
+ var bs=L.getElementsByTagName('button');for(var k=0;k<bs.length;k++)bs[k].onclick=function(){var b=this,l=b.getAttribute('data-l'),d=b.getAttribute('data-d'),a=H.svList(LS);
+  if(l!=null){var r=a[+l];$('sex').value=r.gender||'男';$('svN').value=r.name;if(r.birth&&r.birth.date){$('bd').value=r.birth.date;$('bt').value=r.birth.time||'';$('tz').value=r.birth.tz;$('lz').checked=!!r.birth.lateZi;$('calc').onclick();}setP(r.pillars);if(r.birth&&r.birth.date)$('calc').onclick();$('go').onclick();svMsg('已載入：'+r.name);}
+  else if(confirm('確定刪除「'+a[+d].name+'」？')){H.svDel(LS,a[+d].name);svRender();svMsg('已刪除');}};}
+$('svB').onclick=function(){if(!LS){svMsg('無法使用本機儲存');return;}var n=$('svN').value.replace(/^\s+|\s+$/g,'');if(!n){svMsg('請輸入名稱');return;}
+ if(H.svFind(H.svList(LS),n)>=0&&!confirm('「'+n+'」已存在，要覆蓋嗎？'))return;
+ var rec={name:n,gender:$('sex').value,pillars:getP(),saved:new Date().toISOString()};if(BIRTH&&$('bd').value)rec.birth={date:$('bd').value,time:$('bt').value,tz:parseFloat($('tz').value)||8,lateZi:$('lz').checked};
+ try{H.svPut(LS,rec);svRender();svMsg('已儲存：'+n);}catch(e){svMsg('儲存失敗：'+e.message);}};
+$('svX').onclick=function(){var a=LS?H.svList(LS):[];if(!a.length){svMsg('沒有可匯出的資料');return;}var bl=new Blob([JSON.stringify(a,null,1)],{type:'application/json'});
+ if(window.navigator.msSaveBlob){navigator.msSaveBlob(bl,'bazi-saved.json');return;}var u=URL.createObjectURL(bl),x=document.createElement('a');x.href=u;x.download='bazi-saved.json';document.body.appendChild(x);x.click();setTimeout(function(){document.body.removeChild(x);URL.revokeObjectURL(u);},1000);};
+$('svI').onchange=function(){var f=this.files&&this.files[0],inp=this;if(!f||!LS)return;var rd=new FileReader();rd.onload=function(){try{var a=JSON.parse(rd.result);if(!a||a.length==null)a=[a];var n=H.svMerge(LS,a);svRender();svMsg('已匯入 '+n+' 筆（同名覆蓋）');}catch(e){svMsg('匯入失敗：檔案格式錯誤');}inp.value='';};rd.readAsText(f);};
+svRender();
 /* 自我測試 */
 if(/[?&]selftest=1/.test(location.search)){var T=H.selftest(D);$('st').textContent='【自我測試】'+(T.ok?'全部通過':'有失敗')+'\n'+T.lines.join('\n');setP(H.SAMPLE.pillars);$('go').onclick();}
 })();

@@ -61,6 +61,14 @@ function shigan(p,D){var cnt={},cang=[],i;GAN.forEach(function(g){cnt[g]=0;});
  var mz=p[1].charAt(1),siji='辰戌丑未'.indexOf(mz)>=0,sea=SEASON[mz];
  var tot=0;for(var k in cnt)tot+=cnt[k];
  return {cnt:cnt,cang:cang,total:tot,siji:siji,seasonWx:sea,tu:siji?wsx('土'):null,season:wsx(sea)};}
+/* 儲存八字（localStorage 介面，store 需有 getItem/setItem） */
+var SKEY='healthSaved';
+function svList(st){try{var a=JSON.parse(st.getItem(SKEY)||'[]');return a&&a.length!=null?a:[];}catch(e){return [];}}
+function svFind(a,n){for(var i=0;i<a.length;i++)if(a[i].name===n)return i;return -1;}
+function svPut(st,rec){var a=svList(st),i=svFind(a,rec.name);if(i>=0)a[i]=rec;else a.push(rec);st.setItem(SKEY,JSON.stringify(a));return a;}
+function svDel(st,n){var a=svList(st),i=svFind(a,n);if(i>=0)a.splice(i,1);st.setItem(SKEY,JSON.stringify(a));return a;}
+function svValid(r){return r&&typeof r.name==='string'&&r.name&&r.pillars&&r.pillars.length===4;}
+function svMerge(st,arr){var n=0;for(var i=0;i<arr.length;i++)if(svValid(arr[i])){svPut(st,arr[i]);n++;}return n;}
 /* 單柱天干＋地支藏干計數（吳俊民式流年／大運表，本站設定） */
 function gzCount(gz,D){var r={};GAN.forEach(function(g){r[g]=0;});if(!gz)return r;r[gz.charAt(0)]++;var cg=D.cang[gz.charAt(1)];for(var j=0;j<cg.length;j++)r[cg.charAt(j)]++;return r;}
 /* 書中生剋洩配對（由書影例句歸納：同陰陽相配，如甲得壬生、遭庚剋、洩於丙）——推論 */
@@ -111,7 +119,12 @@ function selftest(D){var out=[],ok=true;function chk(n,a,e){var p=a===e;ok=ok&&p
  var LN=gzCount(yearGZ(2026),D),DC=gzCount('戊申',D);
  chk('吳俊民式 流年2026 丙午',GAN.filter(function(g){return LN[g];}).map(function(g){return g+LN[g];}).join(' '),'丙1 丁1 己1');
  chk('吳俊民式 大運戊申',GAN.filter(function(g){return DC[g];}).map(function(g){return g+DC[g];}).join(' '),'戊2 庚1 壬1');
+ var mem={},stub={getItem:function(k){return mem.hasOwnProperty(k)?mem[k]:null;},setItem:function(k,v){mem[k]=String(v);}};
+ var rec={name:'測試',gender:'男',pillars:SAMPLE.pillars.slice(),birth:{date:'1962-07-20',time:'00:30',tz:8,lateZi:true}};
+ svPut(stub,rec);svPut(stub,{name:'乙',gender:'女',pillars:['甲子','丙寅','戊辰','庚申']});svPut(stub,{name:'測試',gender:'男',pillars:rec.pillars,birth:rec.birth});
+ var L=svList(stub);chk('儲存／載入 往返',L.length+'|'+L[0].name+'|'+L[0].pillars.join('')+'|'+L[0].birth.time+'|'+L[0].birth.lateZi,'2|測試|壬寅丁未戊寅壬子|00:30|true');
+ svDel(stub,'乙');var m=svMerge(stub,JSON.parse(JSON.stringify([{name:'乙',gender:'女',pillars:['甲子','丙寅','戊辰','庚申']},{bad:1}])));chk('刪除＋匯入合併',svList(stub).map(function(r){return r.name;}).join(',')+'|'+m,'測試,乙|1');
  return {ok:ok,lines:out,R:R,DY:DY};}
-var API={GAN:GAN,ZHI:ZHI,WX:WX,POS:POS,wxOf:wxOf,fromSolar:fromSolar,analyze:analyze,selftest:selftest,shigan:shigan,gejue:gejue,gzCount:gzCount,bookForce:bookForce,mingzi:mingzi,yearGZ:yearGZ,dayun:dayun,SAMPLE:SAMPLE,gen:gen,ke:ke,keBy:keBy,genBy:genBy};
+var API={GAN:GAN,ZHI:ZHI,WX:WX,POS:POS,wxOf:wxOf,fromSolar:fromSolar,analyze:analyze,selftest:selftest,shigan:shigan,gejue:gejue,svList:svList,svPut:svPut,svDel:svDel,svFind:svFind,svMerge:svMerge,gzCount:gzCount,bookForce:bookForce,mingzi:mingzi,yearGZ:yearGZ,dayun:dayun,SAMPLE:SAMPLE,gen:gen,ke:ke,keBy:keBy,genBy:genBy};
 if(typeof module!=='undefined'&&module.exports)module.exports=API;else root.HC=API;
 })(this);

@@ -15,7 +15,7 @@ table{border-collapse:collapse;width:100%;font-size:15px}td,th{border:1px solid 
 .u{color:#999}.src{font-size:12px;color:#8a6d3b}.note{font-size:13px;color:#666}.warn{background:#fff4e5;border:1px solid #f0c27b;padding:8px;border-radius:6px;font-size:14px}
 .big{font-size:22px;letter-spacing:4px;font-weight:bold}
 table.sg td,table.sg2 td{text-align:center}.big2{font-size:20px;font-weight:bold}.bd{display:inline-block;border-radius:12px;padding:1px 8px;font-size:13px;white-space:nowrap}
-td.sel,th.sel{outline:2px solid #1f3a52;outline-offset:-2px}.scr{overflow-x:auto;-webkit-overflow-scrolling:touch}table.ln td,table.ln th{white-space:nowrap;text-align:center;font-size:13px}table.lnv{width:100%;table-layout:fixed;font-size:11px}table.lnv td,table.lnv th{padding:2px 1px;word-break:break-all}table.lnv .big2{font-size:15px}.msw{background:#fff4e5;border:1px solid #f0c27b;border-radius:8px;padding:8px}.msw button{flex:1 1 140px}#st{white-space:pre-wrap;font-family:monospace;font-size:13px}
+td.sel,th.sel{outline:2px solid #1f3a52;outline-offset:-2px}.scr{overflow-x:auto;-webkit-overflow-scrolling:touch}table.ln td,table.ln th{white-space:nowrap;text-align:center;font-size:13px}table.lnv{width:100%;table-layout:fixed;font-size:11px}table.lnv td,table.lnv th{padding:2px 1px;word-break:break-all}table.lnv .big2{font-size:15px}.svi{display:flex;flex-wrap:wrap;align-items:center;gap:6px;border-bottom:1px solid #eee;padding:6px 0}.svi span{flex:1 1 160px;min-width:0;word-break:break-all}.msw{background:#fff4e5;border:1px solid #f0c27b;border-radius:8px;padding:8px}.msw button{flex:1 1 140px}#st{white-space:pre-wrap;font-family:monospace;font-size:13px}
 @media(max-width:480px){td,th{font-size:13px;padding:3px}}
 </style></head><body><div class="wrap">
 <h1>八字健康疾病參考</h1>
@@ -31,6 +31,15 @@ td.sel,th.sel{outline:2px solid #1f3a52;outline-offset:-2px}.scr{overflow-x:auto
 <div class="row"><b>四柱（可直接選）</b></div>
 <div class="pg" id="pg"></div>
 <div class="row" style="margin-top:10px"><button id="go">分析</button></div>
+</div>
+<div class="card" id="sv">
+<div class="row"><b>儲存八字</b></div>
+<div class="row"><input type="text" id="svN" placeholder="名稱" maxlength="40" style="flex:1 1 140px;min-width:0"><button id="svB">儲存</button></div>
+<div class="row"><b>已儲存八字</b></div>
+<div id="svL"></div>
+<div class="row"><button class="sec" id="svX">匯出全部</button><label class="sec" style="cursor:pointer">匯入 <input type="file" id="svI" accept=".json,application/json" style="max-width:180px"></label></div>
+<div class="note">資料只存在本機瀏覽器（換瀏覽器或清除資料會遺失，請用「匯出全部」備份）。</div>
+<div class="note" id="svM"></div>
 </div>
 <div id="out"></div>
 <div class="row" id="exp" style="display:none"><button id="pdf">下載 PDF</button><button id="doc" class="sec">下載 Word</button><span class="note" id="emsg"></span></div>
